@@ -62,12 +62,16 @@ while(True):
     client_message = "Message from Client:{}".format(message)
     #clientIP  = "Client IP Address:{}".format(address)
 
+    '''
     try:
         client_message = json.loads(message)
         valid_json = True
     except:
         print("Could not serialize payload to JSON, skipping.")
         valid_json = False
+    '''
+
+    valid_json = True
 
     if (valid_json):
         print(client_message)
