@@ -1,6 +1,8 @@
 import socket
 import sys
+import jsonschema
 from jsonschema import validate
+import json
 
 def init_udp_server():
     # all interefaces
@@ -29,7 +31,7 @@ def init_udp_server():
 
     return UDPServerSocket
 
-def validate_json(payload):
+def validate_json_schema(payload):
     schema = {
         "type" : "object",
         "properties" : {
@@ -43,22 +45,34 @@ def validate_json(payload):
         validate(payload, schema)
         return True
     except jsonschema.exceptions.ValidationError as ve:
+        sys.stderr.write(str(ve) + "\n")
         return False
 
 
+# setup the server once
+udp_server_socket = init_udp_server()
+
 while(True):
-    udp_server_socket = init_udp_server()
+    
     bytesAddressPair = udp_server_socket.recvfrom(1024)
 
     message = bytesAddressPair[0]
     address = bytesAddressPair[1]
 
     client_message = "Message from Client:{}".format(message)
-    clientIP  = "Client IP Address:{}".format(address)
-    
-    print(client_message)
+    #clientIP  = "Client IP Address:{}".format(address)
 
-    if (validate_json(client_message)):
-        print("Valid schema detected!")
-    else:
-        print("Invalid JSON, skipping.")
+    try:
+        client_message = json.loads(message)
+        valid_json = True
+    except:
+        print("Could not serialize payload to JSON, skipping.")
+        valid_json = False
+
+    if (valid_json):
+        print(client_message)
+
+        if (validate_json_schema(client_message)):
+            print("Valid schema detected!")
+        else:
+            print("Failed schema validation, skipping.")
