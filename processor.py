@@ -30,8 +30,17 @@ def init_udp_server():
     return UDPServerSocket
 
 def validate_json(payload):
+    schema = {
+        "type" : "object"
+        "properties" : {
+            "mac" : {"type" : "string"},
+            "feedName" : {"type" : "string"},
+            "value" : {"type" : "number"},
+        },
+    }
+
     try:
-        validate(payload)
+        validate(payload, schema)
         return True
     except jsonschema.exceptions.ValidationError as ve:
         return False
