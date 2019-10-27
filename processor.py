@@ -31,7 +31,7 @@ def init_udp_server():
 
 def validate_json(payload):
     schema = {
-        "type" : "object"
+        "type" : "object",
         "properties" : {
             "mac" : {"type" : "string"},
             "feedName" : {"type" : "string"},
