@@ -30,11 +30,14 @@ def init_udp_server():
     return UDPServerSocket
 
 def validate_json(payload):
-    return True
+    try:
+        validate(payload)
+        return True
+    except jsonschema.exceptions.ValidationError as ve:
+        return False
 
 
 while(True):
-
     udp_server_socket = init_udp_server()
     bytesAddressPair = udp_server_socket.recvfrom(1024)
 
@@ -46,4 +49,7 @@ while(True):
     
     print(client_message)
 
-    validate_json(client_message)
+    if (validate_json(client_message)):
+        print("Valid schema detected!")
+    else:
+        print("Invalid JSON, skipping.")
