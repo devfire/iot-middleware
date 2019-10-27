@@ -57,23 +57,40 @@ def validate_json_schema(payload):
         sys.stderr.write(str(ve) + "\n")
         return False
 
+def check_valid_json(udp_payload):
+    # First, let's make sure we were actually passed a JSON object
+    try:
+        client_message = json.loads(message)
+        payload_is_json = True
+    except:
+        print("Could not serialize payload to JSON, skipping.")
+        payload_is_json = False
+        client_message = ''
+    
+    return payload_is_json, client_message
 
 # setup the server once
 udp_server_socket = init_udp_server()
 
 while(True):
-    
     bytesAddressPair = udp_server_socket.recvfrom(1024)
 
     message = bytesAddressPair[0]
     address = bytesAddressPair[1]
 
-    client_message = "Message from Client:{}".format(message)
-    #clientIP  = "Client IP Address:{}".format(address)
+    print(message) 
 
-    print(client_message)
+    '''
+    First, make sure the udp payload is a valid json string.
+    If it is, valid_json is set to True and message contains the JSON object.
+    If not, valid_json is set to False and message is ''
+    '''
+    valid_json, client_message = check_valid_json(message)
 
-    if (validate_json_schema(client_message)):
-        print("Valid schema detected!")
-    else:
-        print("Failed schema validation, skipping.")
+    # Just in case that slipped, only validate the schema if the message is a valid json
+    if (valid_json):
+        # OK, so it is JSON. Let's make sure it is semantically valid
+        if (validate_json_schema(client_message)):
+            print("Valid schema detected!")
+        else:
+            print("Failed schema validation, skipping.")
