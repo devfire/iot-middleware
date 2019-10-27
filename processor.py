@@ -32,6 +32,14 @@ def init_udp_server():
     return UDPServerSocket
 
 def validate_json_schema(payload):
+    '''
+    In a JSON Schema, by default properties are not required, all that our schema does is state what type they must be if the property is present. 
+    So for validation to flag whatever additional properties are missing, we need to mark that key as a required property first, 
+    by adding a required list with names. For more info:
+    https://json-schema.org/understanding-json-schema/reference/object.html#required-properties
+
+    Note the "required" property at the end of the schema.
+    '''
     schema = {
         "type" : "object",
         "properties" : {
@@ -39,6 +47,7 @@ def validate_json_schema(payload):
             "feedName" : {"type" : "string"},
             "value" : {"type" : "number"},
         },
+        "required": ["mac", "feedName", "value"]
     }
 
     try:
@@ -62,21 +71,9 @@ while(True):
     client_message = "Message from Client:{}".format(message)
     #clientIP  = "Client IP Address:{}".format(address)
 
-    '''
-    try:
-        client_message = json.loads(message)
-        valid_json = True
-    except:
-        print("Could not serialize payload to JSON, skipping.")
-        valid_json = False
-    '''
+    print(client_message)
 
-    valid_json = True
-
-    if (valid_json):
-        print(client_message)
-
-        if (validate_json_schema(client_message)):
-            print("Valid schema detected!")
-        else:
-            print("Failed schema validation, skipping.")
+    if (validate_json_schema(client_message)):
+        print("Valid schema detected!")
+    else:
+        print("Failed schema validation, skipping.")
