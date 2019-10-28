@@ -3,6 +3,7 @@ import sys
 import jsonschema
 from jsonschema import validate
 import json
+import logging
 
 def init_udp_server():
     # all interefaces
@@ -14,20 +15,19 @@ def init_udp_server():
     # Datagram (udp) socket
     try:
         UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        print("Socket created")
+        logging.info("Socket created")
     except OSError as err:
-        print("OS error: {0}".format(err))
+        logging.error("OS error: {0}".format(err))
         sys.exit()
-
 
     # Bind socket to host and port
     try:
         UDPServerSocket.bind((HOST, PORT))
     except OSError as err:
-        print("OS error: {0}".format(err))	
+        logging.error("OS error: {0}".format(err))	
         sys.exit()
 
-    print("UDP server is ready to go!")
+    logging.info("UDP server is ready to go!")
 
     return UDPServerSocket
 
@@ -54,20 +54,23 @@ def validate_json_schema(payload):
         validate(payload, schema)
         return True
     except jsonschema.exceptions.ValidationError as ve:
-        sys.stderr.write(str(ve) + "\n")
+        #sys.stderr.write(str(ve) + "\n")
         return False
 
 def check_valid_json(udp_payload):
-    # First, let's make sure we were actually passed a JSON object
+    # make sure we were actually passed a JSON object
     try:
         json_payload = json.loads(message)
         payload_is_json = True
     except:
-        print("Could not serialize payload to JSON, skipping.")
-        payload_is_json = False
         json_payload = ''
+        payload_is_json = False
     
+    # return a tuple of boolean and JSON payload
     return payload_is_json, json_payload
+
+def convert_mac_to_name(json_payload):
+    pass
 
 # setup the server once
 udp_server_socket = init_udp_server()
@@ -78,8 +81,6 @@ while(True):
     message = bytesAddressPair[0]
     address = bytesAddressPair[1]
 
-    print(message) 
-
     '''
     First, make sure the udp payload is a valid json string.
     If it is, valid_json is set to True and message contains the JSON object.
@@ -87,10 +88,15 @@ while(True):
     '''
     valid_json, client_message = check_valid_json(message)
 
-    # Just in case that slipped, only validate the schema if the message is a valid json
+    # only validate the schema if the message is a valid json
     if (valid_json):
         # OK, so it is JSON. Let's make sure it is semantically valid
         if (validate_json_schema(client_message)):
-            print("Valid schema detected!")
+            logging.info("Valid schema detected!")
         else:
-            print("Failed schema validation, skipping.")
+            logging.error("Failed schema validation, skipping.")
+            continue
+    else:
+        logging.error("Could not serialize payload to JSON, skipping.")
+        continue
+    
