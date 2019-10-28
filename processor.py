@@ -60,14 +60,14 @@ def validate_json_schema(payload):
 def check_valid_json(udp_payload):
     # First, let's make sure we were actually passed a JSON object
     try:
-        client_message = json.loads(message)
+        json_payload = json.loads(message)
         payload_is_json = True
     except:
         print("Could not serialize payload to JSON, skipping.")
         payload_is_json = False
-        client_message = ''
+        json_payload = ''
     
-    return payload_is_json, client_message
+    return payload_is_json, json_payload
 
 # setup the server once
 udp_server_socket = init_udp_server()
