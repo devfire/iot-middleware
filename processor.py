@@ -4,6 +4,7 @@ import jsonschema
 from jsonschema import validate
 import json
 import logging
+import requests
 
 def init_udp_server():
     # all interefaces
@@ -72,6 +73,15 @@ def check_valid_json(udp_payload):
 def convert_mac_to_name(json_payload):
     pass
 
+def send_value_to_blynk(pin, value):
+    # blynk auth token
+    BLYNK_AUTH = 'qVzQ9p19MoOzZ1xVX2jCLWnS7xe1N7_e'
+    BASE_URL = 'http://blynk-cloud.com/'
+
+    URL = BASE_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
+    print(URL)
+    response = requests.get(URL)
+    
 # setup the server once
 udp_server_socket = init_udp_server()
 
@@ -100,3 +110,4 @@ while(True):
         logging.error("Could not serialize payload to JSON, skipping.")
         continue
     
+    send_value_to_blynk(1,123)
