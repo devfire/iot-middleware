@@ -79,8 +79,12 @@ def send_value_to_blynk(pin, value):
     BASE_URL = 'http://blynk-cloud.com/'
 
     URL = BASE_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-    print(URL)
-    response = requests.get(URL)
+    logging.info("Sending " + str(value) + "to pin " + str(pin))
+
+    try:
+        response = requests.get(URL)
+    except requests.exceptions.RequestException as e:
+        print e
     
 # setup the server once
 udp_server_socket = init_udp_server()
