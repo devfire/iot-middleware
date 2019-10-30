@@ -5,6 +5,7 @@ from jsonschema import validate
 import json
 import logging
 import requests
+import os
 
 def init_udp_server():
     # all interefaces
@@ -75,11 +76,7 @@ def convert_mac_to_name(json_payload):
     pass
 
 def send_value_to_blynk(pin, value):
-    # blynk auth token
-    BLYNK_AUTH = 'qVzQ9p19MoOzZ1xVX2jCLWnS7xe1N7_e'
-    BASE_URL = 'http://blynk-cloud.com/'
-
-    URL = BASE_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
+    URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
     logging.info("Sending " + str(value) + "to pin " + str(pin))
 
     try:    
@@ -89,6 +86,19 @@ def send_value_to_blynk(pin, value):
     
 # setup the server once
 udp_server_socket = init_udp_server()
+
+''' We need to make sure the env vars are set correctly '''
+for env_var in ('BLYNK_URL','BLYNK_AUTH'):
+    logging.info("Checking for",env_var)
+    if env_var in os.environ:
+        logging.info("Found",env_var)
+    else:
+        logging.error("Missing required environment variable: {0}".format(env_var))
+        sys.exit(1)
+
+# blynk settings
+BLYNK_AUTH = os.getenv("BLYNK_AUTH")
+BLYNK_URL = os.getenv("BLYNK_URL")
 
 while(True):
     bytesAddressPair = udp_server_socket.recvfrom(1024)
