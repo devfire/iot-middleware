@@ -29,14 +29,16 @@ def init_udp_server():
         logging.error("OS error: {0}".format(err))	
         sys.exit()
 
-    logging.info("UDP server is ready to go!")
+    logging.info("UDP server is ready to go.")
 
     return UDPServerSocket
 
 def validate_json_schema(payload):
     '''
-    In a JSON Schema, by default properties are not required, all that our schema does is state what type they must be if the property is present. 
-    So for validation to flag whatever additional properties are missing, we need to mark that key as a required property first, 
+    In a JSON Schema, by default properties are not required, all that our schema does 
+    is state what type they must be if the property is present. 
+    So for validation to flag whatever additional properties are missing, 
+    we need to mark that key as a required property first, 
     by adding a required list with names. For more info:
     https://json-schema.org/understanding-json-schema/reference/object.html#required-properties
 
