@@ -56,9 +56,10 @@ def validate_json_schema(payload):
         return True
     except jsonschema.exceptions.ValidationError as ve:
         #sys.stderr.write(str(ve) + "\n")
+        logging.error(ve)
         return False
 
-def check_valid_json(udp_payload):
+def is_valid_json(udp_payload):
     # make sure we were actually passed a JSON object
     try:
         json_payload = json.loads(message)
@@ -81,10 +82,10 @@ def send_value_to_blynk(pin, value):
     URL = BASE_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
     logging.info("Sending " + str(value) + "to pin " + str(pin))
 
-    try:
+    try:    
         response = requests.get(URL)
     except requests.exceptions.RequestException as e:
-        print e
+        logging.error(e)
     
 # setup the server once
 udp_server_socket = init_udp_server()
@@ -100,10 +101,10 @@ while(True):
     If it is, valid_json is set to True and message contains the JSON object.
     If not, valid_json is set to False and message is ''
     '''
-    valid_json, client_message = check_valid_json(message)
+    valid_json_bool, client_message = is_valid_json(message)
 
     # only validate the schema if the message is a valid json
-    if (valid_json):
+    if (valid_json_bool):
         # OK, so it is JSON. Let's make sure it is semantically valid
         if (validate_json_schema(client_message)):
             logging.info("Valid schema detected!")
@@ -114,4 +115,9 @@ while(True):
         logging.error("Could not serialize payload to JSON, skipping.")
         continue
     
-    send_value_to_blynk(1,123)
+    print(client_message)
+    #sensor_data = json.loads(client_message)
+    value = client_message["value"]
+    print("value is", value)
+    
+    send_value_to_blynk(1,value)
