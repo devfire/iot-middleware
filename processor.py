@@ -77,23 +77,35 @@ def convert_mac_to_name(json_payload):
 
 def send_value_to_blynk(pin, value):
     URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-    logging.info("Sending " + str(value) + "to pin " + str(pin))
+    logging.info("Sending " + str(value) + " to pin " + str(pin))
 
     try:    
         response = requests.get(URL)
     except requests.exceptions.RequestException as e:
         logging.error(e)
-    
+
+
+''' We need to make sure the env vars are set correctly.
+Assuming loglevel is bound to the string value obtained from the
+command line argument. Convert to upper case to allow the user to
+specify --log=DEBUG or --log=debug
+numeric_level = getattr(logging, loglevel.upper(), None)
+if not isinstance(numeric_level, int):
+    raise ValueError('Invalid log level: %s' % loglevel)
+logging.basicConfig(level=numeric_level)
+'''
+
+logging.basicConfig(level=logging.INFO)
+
 # setup the server once
 udp_server_socket = init_udp_server()
 
-''' We need to make sure the env vars are set correctly '''
 for env_var in ('BLYNK_URL','BLYNK_AUTH'):
-    logging.info("Checking for",env_var)
+    logging.info("Checking for " + str(env_var))
     if env_var in os.environ:
-        logging.info("Found",env_var)
+        logging.info("Found " + str(env_var))
     else:
-        logging.error("Missing required environment variable: {0}".format(env_var))
+        logging.error("Missing required environment variable: " + str(env_var))
         sys.exit(1)
 
 # blynk settings
@@ -125,9 +137,10 @@ while(True):
         logging.error("Could not serialize payload to JSON, skipping.")
         continue
     
-    print(client_message)
+    # print the received message for debugging purposes
+    logging.debug(client_message)
+
     #sensor_data = json.loads(client_message)
     value = client_message["value"]
-    print("value is", value)
     
     send_value_to_blynk(1,value)
