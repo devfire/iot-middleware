@@ -1,3 +1,4 @@
+import configparser
 import socket
 import sys
 import jsonschema
@@ -74,10 +75,8 @@ def is_valid_json(udp_payload):
     # return a tuple of boolean and JSON payload
     return payload_is_json, json_payload
 
-def convert_mac_to_name(json_payload):
-    pass
-
-def send_value_to_blynk(pin, value):
+def send_value_to_blynk(dest_mac_address, dest_feedname, dest_value):
+    pin = config[dest_mac_address][dest_feedname]
     URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
     logging.info("Sending " + str(value) + " to pin " + str(pin))
 
@@ -98,6 +97,9 @@ logging.basicConfig(level=numeric_level)
 '''
 
 logging.basicConfig(level=logging.INFO)
+
+config = configparser.ConfigParser()                                     
+config.read('./settings.ini')
 
 # setup the server once
 udp_server_socket = init_udp_server()
@@ -144,5 +146,7 @@ while(True):
 
     #sensor_data = json.loads(client_message)
     value = client_message["value"]
+    mac   = client_message["mac"]
+    feed_name = client_message["feedName"]
     
-    send_value_to_blynk(1,value)
+    send_value_to_blynk(mac, feed_name, value)
