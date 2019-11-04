@@ -76,14 +76,22 @@ def is_valid_json(udp_payload):
     return payload_is_json, json_payload
 
 def send_value_to_blynk(dest_mac_address, dest_feedname, dest_value):
-    pin = config[dest_mac_address][dest_feedname]
-    URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-    logging.info("Sending " + str(value) + " to pin " + str(pin))
+    # check to see if there's a section and that section has the pin
+    if config.has_option(dest_mac_address,dest_feedname):
+        # it does, let's grab its pin
+        pin = config[dest_mac_address][dest_feedname]
 
-    try:    
-        response = requests.get(URL)
-    except requests.exceptions.RequestException as e:
-        logging.error(e)
+        # format the URL properly. This is a REST call to blynk.
+        URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
+        logging.info("Sending " + str(value) + " to pin " + str(pin))
+
+        try:    
+            response = requests.get(URL)
+        except requests.exceptions.RequestException as e:
+            logging.error(e)
+    else:
+        # either mac or the feedname is not found, skipping
+        logging.error("Not sure what to do with " + str(dest_feedname) + " from " + str(dest_mac_address))
 
 
 ''' We need to make sure the env vars are set correctly.
