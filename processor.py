@@ -66,7 +66,7 @@ def validate_json_schema(payload):
 def is_valid_json(udp_payload):
     # make sure we were actually passed a JSON object
     try:
-        json_payload = json.loads(message)
+        json_payload = json.loads(udp_payload)
         payload_is_json = True
     except:
         json_payload = ''
