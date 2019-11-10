@@ -62,7 +62,7 @@ def validate_json_schema(payload):
     }
 
     try:
-        validate(payload, schema)
+        jsonschema.validate(payload, schema)
         return True
     except jsonschema.exceptions.ValidationError as ve:
         #sys.stderr.write(str(ve) + "\n")
@@ -103,7 +103,7 @@ def send_value_to_blynk(client_message):
 
         # format the URL properly. This is a REST call to blynk.
         URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-        logging.info("Sending" + URL)
+        logging.info("Sending " + URL)
 
         # attempt to send data to blynk
         try:    
