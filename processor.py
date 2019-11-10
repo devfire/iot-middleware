@@ -2,7 +2,6 @@ import configparser
 import socket
 import sys
 import jsonschema
-from jsonschema import validate
 import json
 import logging
 import requests
