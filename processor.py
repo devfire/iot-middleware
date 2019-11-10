@@ -8,6 +8,13 @@ import logging
 import requests
 import os
 
+# set our default log level
+logging.basicConfig(level=logging.INFO)
+
+# initialize the config parser
+config = configparser.ConfigParser()                                     
+config.read('./settings.ini')
+
 def init_udp_server():
     # all interefaces
     HOST = ""
@@ -75,15 +82,29 @@ def is_valid_json(udp_payload):
     # return a tuple of boolean and JSON payload
     return payload_is_json, json_payload
 
-def send_value_to_blynk(dest_mac_address, dest_feedname, dest_value):
-    # check to see if there's a section and that section has the pin
-    if config.has_option(dest_mac_address,dest_feedname):
+def send_value_to_blynk(client_message):
+    # blynk settings
+    BLYNK_AUTH = os.getenv("BLYNK_AUTH")
+    BLYNK_URL = os.getenv("BLYNK_URL")
+
+    '''
+    Let's get all the things assigned to the right values:
+    - value is the actual numeric value of the sensor
+    - mac is the mac address, this is how we figure out what to route where
+    - feed name is used to look up the blynk virtual pin
+    '''
+    value = client_message["value"]
+    mac   = client_message["mac"]
+    feed_name = client_message["feedName"]
+
+    # check to see if there's a relevant section in settings.ini and that section has the pin
+    if config.has_option(mac,feed_name):
         # it does, let's grab its pin
-        pin = config[dest_mac_address][dest_feedname]
+        pin = config[mac][feed_name]
 
         # format the URL properly. This is a REST call to blynk.
         URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-        logging.info("Sending " + str(value) + " to pin " + str(pin))
+        logging.info("Sending" + URL)
 
         # attempt to send data to blynk
         try:    
@@ -92,30 +113,23 @@ def send_value_to_blynk(dest_mac_address, dest_feedname, dest_value):
             logging.error(e)
     else:
         # either mac or the feedname is not found, skipping
-        logging.error("Not sure what to do with " + str(dest_feedname) + " from " + str(dest_mac_address))
+        logging.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
 
-# set our default log level
-logging.basicConfig(level=logging.INFO)
+def validate_settings():
+    # both the blynk url and the auth token must be present
+    for env_var in ('BLYNK_URL','BLYNK_AUTH'):
+        logging.info("Checking for " + str(env_var))
+        if env_var in os.environ:
+            logging.info("Found " + str(env_var))
+        else:
+            logging.error("Missing required environment variable: " + str(env_var))
+            sys.exit(1)
 
-# initialize the config parser
-config = configparser.ConfigParser()                                     
-config.read('./settings.ini')
+# make sure all of the necessary env variables are defined
+validate_settings()
 
 # setup the server once
 udp_server_socket = init_udp_server()
-
-# both the blynk url and the auth token must be present
-for env_var in ('BLYNK_URL','BLYNK_AUTH'):
-    logging.info("Checking for " + str(env_var))
-    if env_var in os.environ:
-        logging.info("Found " + str(env_var))
-    else:
-        logging.error("Missing required environment variable: " + str(env_var))
-        sys.exit(1)
-
-# blynk settings
-BLYNK_AUTH = os.getenv("BLYNK_AUTH")
-BLYNK_URL = os.getenv("BLYNK_URL")
 
 '''
 Let's get the infinite loop going.
@@ -141,35 +155,25 @@ while(True):
     We do it in one shot since we are much more likely to get valid JSON than not.
     If not, valid_json is set to False and message is an empty string ''.
     '''
-    valid_json_bool, client_message = is_valid_json(message)
+    valid_json_bool, current_client_message = is_valid_json(message)
 
     # only validate the schema if the message is a valid json
     if (valid_json_bool):
         # OK, so it is JSON. Let's make sure it is semantically valid
-        if (validate_json_schema(client_message)):
+        if (validate_json_schema(current_client_message)):
             logging.info("Valid schema detected!")
         else:
             logging.error("Failed schema validation, skipping.")
-            continue
+            continue # go the beginning of the while loop
     else:
         logging.error("Could not serialize payload to JSON, skipping.")
-        continue
+        continue # go the beginning of the while loop
     
     # print the received message for debugging purposes
-    logging.debug(client_message)
-
-    '''
-    Let's get all the things assigned to the right values:
-    - value is the actual numeric value of the sensor
-    - mac is the mac address, this is how we figure out what to route where
-    - feed name is used to look up the blynk virtual pin
-    '''
-    value = client_message["value"]
-    mac   = client_message["mac"]
-    feed_name = client_message["feedName"]
+    logging.debug(current_client_message)
     
     '''
     Publish the data to blynk.
     NOTE: we don't know the correct pin, we'll look it up later
     '''
-    send_value_to_blynk(mac, feed_name, value)
+    send_value_to_blynk(current_client_message)
