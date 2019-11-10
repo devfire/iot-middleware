@@ -8,11 +8,10 @@ import requests
 import os
 
 # set our default log level
-logging.basicConfig(level=logging.INFO)
+LOG_LEVEL = logging.INFO
 
-# initialize the config parser
-config = configparser.ConfigParser()                                     
-config.read('./settings.ini')
+# set the default config file
+CONFIG_FILE = 'settings.ini'
 
 def init_udp_server():
     # all interefaces
@@ -124,8 +123,22 @@ def validate_settings():
             logging.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
+    # make sure the settings.ini actually exists
+
+# initialize the logger
+logging.basicConfig(level=LOG_LEVEL)
+
 # make sure all of the necessary env variables are defined
 validate_settings()
+
+# initialize the config parser
+config = configparser.ConfigParser()
+
+try:
+    config.read_file(open(CONFIG_FILE))
+except FileNotFoundError:
+    logging.error("Missing config file, exiting.")
+    sys.exit(1)
 
 # setup the server once
 udp_server_socket = init_udp_server()
