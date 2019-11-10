@@ -123,7 +123,6 @@ def validate_settings():
             logging.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-    # make sure the settings.ini actually exists
 
 # initialize the logger
 logging.basicConfig(level=LOG_LEVEL)
@@ -134,6 +133,7 @@ validate_settings()
 # initialize the config parser
 config = configparser.ConfigParser()
 
+# make sure the settings file actually exists
 try:
     config.read_file(open(CONFIG_FILE))
 except FileNotFoundError:
@@ -176,10 +176,10 @@ while(True):
             logging.info("Valid schema detected!")
         else:
             logging.error("Failed schema validation, skipping.")
-            continue # go the beginning of the while loop
+            continue # go to the beginning of the while loop
     else:
         logging.error("Could not serialize payload to JSON, skipping.")
-        continue # go the beginning of the while loop
+        continue # go to the beginning of the while loop
     
     # print the received message for debugging purposes
     logging.debug(current_client_message)
