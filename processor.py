@@ -123,7 +123,6 @@ def validate_settings():
             logging.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-
 # initialize the logger
 logging.basicConfig(level=LOG_LEVEL)
 
