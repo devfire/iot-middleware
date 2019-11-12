@@ -1,7 +1,6 @@
 import settings
 import socket
 import sys
-import jsonschema
 import json
 import requests
 import os
@@ -33,33 +32,14 @@ def init_udp_server():
     return UDPServerSocket
 
 def validate_json_schema(payload):
-    '''
-    In a JSON Schema, by default properties are not required, all that our schema does 
-    is state what type they must be if the property is present. 
-    So, for validation to flag whatever additional properties are missing, 
-    we need to mark that key as a required property first, 
-    by adding a required list with names. For more info:
-    https://json-schema.org/understanding-json-schema/reference/object.html#required-properties
-
-    NOTE: the "required" property is at the end of the schema.
-    '''
-    schema = {
-        "type" : "object",
-        "properties" : {
-            "mac" : {"type" : "string"},
-            "feedName" : {"type" : "string"},
-            "value" : {"type" : "number"},
-        },
-        "required": ["mac", "feedName", "value"]
-    }
-
+    valid_json_schema = None
     try:
-        jsonschema.validate(payload, schema)
-        return True
-    except jsonschema.exceptions.ValidationError as ve:
-        #sys.stderr.write(str(ve) + "\n")
+        settings.jsonschema.validate(payload, schema)
+        valid_json_schema = True
+    except settings.jsonschema.exceptions.ValidationError as ve:
         settings.logging.error(ve)
-        return False
+        valid_json_schema = False
+    return valid_json_schema
 
 def is_valid_json(udp_payload):
     # make sure we were actually passed a JSON object
@@ -128,7 +108,6 @@ try:
 except FileNotFoundError:
     settings.logging.error("Missing config file, exiting.")
     sys.exit(1)
-
 
 # setup the server once
 udp_server_socket = init_udp_server()
