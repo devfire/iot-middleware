@@ -3,7 +3,7 @@ import socket
 import sys
 import json
 import requests
-import os
+import validation
 
 def init_udp_server():
     # all interefaces
@@ -30,28 +30,6 @@ def init_udp_server():
     settings.logging.info("UDP server is ready to go.")
 
     return UDPServerSocket
-
-def validate_json_schema(payload):
-    valid_json_schema = None
-    try:
-        settings.jsonschema.validate(payload, schema)
-        valid_json_schema = True
-    except settings.jsonschema.exceptions.ValidationError as ve:
-        settings.logging.error(ve)
-        valid_json_schema = False
-    return valid_json_schema
-
-def is_valid_json(udp_payload):
-    # make sure we were actually passed a JSON object
-    try:
-        json_payload = json.loads(udp_payload)
-        payload_is_json = True
-    except:
-        json_payload = ''
-        payload_is_json = False
-    
-    # return a tuple of boolean and JSON payload
-    return payload_is_json, json_payload
 
 def send_value_to_blynk(client_message):
     # blynk settings
@@ -86,21 +64,11 @@ def send_value_to_blynk(client_message):
         # either mac or the feedname is not found, skipping
         settings.logging.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
 
-def validate_settings():
-    # both the blynk url and the auth token must be present
-    for env_var in ('BLYNK_URL','BLYNK_AUTH'):
-        settings.logging.info("Checking for " + str(env_var))
-        if env_var in os.environ:
-            settings.logging.info("Found " + str(env_var))
-        else:
-            settings.logging.error("Missing required environment variable: " + str(env_var))
-            sys.exit(1)
-
 # initialize the logger
 settings.logging.basicConfig(level=settings.LOG_LEVEL)
 
 # make sure all of the necessary env variables are defined
-validate_settings()
+validation.validate_settings()
 
 # make sure the settings file actually exists
 try:
@@ -136,12 +104,12 @@ while(True):
     We do it in one shot since we are much more likely to get valid JSON than not.
     If not, valid_json is set to False and message is an empty string ''.
     '''
-    valid_json_bool, current_client_message = is_valid_json(message)
+    valid_json_bool, current_client_message = validation.is_valid_json(message)
 
     # only validate the schema if the message is a valid json
     if (valid_json_bool):
         # OK, so it is JSON. Let's make sure it is semantically valid
-        if (validate_json_schema(current_client_message)):
+        if (validation.validate_json_schema(current_client_message)):
             settings.logging.info("Valid schema detected!")
         else:
             settings.logging.error("Failed schema validation, skipping.")
