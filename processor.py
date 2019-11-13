@@ -101,7 +101,7 @@ def send_value_to_blynk(client_message):
         pin = config[mac][feed_name]
 
         # format the URL properly. This is a REST call to blynk.
-        URL = BLYNK_URL + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
+        URL = BLYNK_URL + '/' + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
         logging.info("Sending " + URL)
 
         # attempt to send data to blynk
