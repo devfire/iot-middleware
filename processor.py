@@ -7,6 +7,16 @@ import logging
 import requests
 import os
 
+# Create a custom logger
+handler = logging.StreamHandler()
+c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(c_format)
+logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+logger.addHandler(handler)
+
+logger.info("Logger setup, starting the processor main loop.")
+
 # set the default config file
 CONFIG_FILE = 'settings.ini'
 
@@ -120,9 +130,8 @@ def validate_settings():
             logger.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-# Create a custom logger
-logger = logging.getLogger(__name__)
 
+'''
 # Create handlers
 c_handler = logging.StreamHandler()
 c_handler.setLevel(logging.DEBUG)
@@ -133,6 +142,7 @@ c_handler.setFormatter(c_format)
 
 # Add handlers to the logger
 logger.addHandler(c_handler)
+'''
 
 # make sure all of the necessary env variables are defined
 validate_settings()
@@ -144,7 +154,7 @@ config = configparser.ConfigParser()
 try:
     config.read_file(open(CONFIG_FILE))
 except FileNotFoundError:
-    logge.error("Missing config file, exiting.")
+    logger.error("Missing config file, exiting.")
     sys.exit(1)
 
 # setup the server once
@@ -180,7 +190,7 @@ while(True):
     if (valid_json_bool):
         # OK, so it is JSON. Let's make sure it is semantically valid
         if (validate_json_schema(current_client_message)):
-            logge.info("Valid schema detected!")
+            logger.info("Valid schema detected!")
         else:
             logger.error("Failed schema validation, skipping.")
             continue # go to the beginning of the while loop
