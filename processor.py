@@ -105,14 +105,16 @@ def send_value_to_blynk(client_message):
     if config.has_option(mac,feed_name):
         # it does, let's grab its pin
         pin = config[mac][feed_name]
+        logger.debug("Found valid config for pin " + str(pin))
 
         # format the URL properly. This is a REST call to blynk.
         URL = BLYNK_URL + '/' + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-        logger.debug("Sending " + URL)
+        logger.debug("Posting to " + URL)
 
         # attempt to send data to blynk
         try:    
             response = requests.get(URL)
+            logger.debug("Sent data successfully to " + URL)
         except requests.exceptions.RequestException as e:
             logger.error(e)
     else:
@@ -166,6 +168,8 @@ while(True):
     # source IP addressed, ignored for now
     address = bytesAddressPair[1]
 
+    logger.debug("Received " + str(message) + "from " + str(address))
+
     '''
     First, make sure the udp payload is a valid json string.
     If it is, valid_json is set to True and message contains the JSON object.
@@ -178,7 +182,7 @@ while(True):
     if (valid_json_bool):
         # OK, so it is JSON. Let's make sure it is semantically valid
         if (validate_json_schema(current_client_message)):
-            logger.info("Valid schema detected!")
+            logger.debug("Valid schema detected!")
         else:
             logger.error("Failed schema validation, skipping.")
             continue # go to the beginning of the while loop
