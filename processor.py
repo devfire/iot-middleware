@@ -12,10 +12,8 @@ handler = logging.StreamHandler()
 c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(c_format)
 logger = logging.getLogger(__name__)
-logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
+logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
 logger.addHandler(handler)
-
-logger.info("Logger setup, starting the processor main loop.")
 
 # set the default config file
 CONFIG_FILE = 'settings.ini'
@@ -102,6 +100,7 @@ def send_value_to_blynk(client_message):
     mac   = client_message["mac"]
     feed_name = client_message["feedName"]
 
+    logger.debug("Checking the config file for the pin settings")
     # check to see if there's a relevant section in settings.ini and that section has the pin
     if config.has_option(mac,feed_name):
         # it does, let's grab its pin
@@ -109,7 +108,7 @@ def send_value_to_blynk(client_message):
 
         # format the URL properly. This is a REST call to blynk.
         URL = BLYNK_URL + '/' + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-        logger.info("Sending " + URL)
+        logger.debug("Sending " + URL)
 
         # attempt to send data to blynk
         try:    
@@ -123,31 +122,19 @@ def send_value_to_blynk(client_message):
 def validate_settings():
     # both the blynk url and the auth token must be present
     for env_var in ('BLYNK_URL','BLYNK_AUTH'):
-        logger.info("Checking for " + str(env_var))
+        logger.debug("Checking for " + str(env_var))
         if env_var in os.environ:
-            logger.info("Found " + str(env_var))
+            logger.debug("Found " + str(env_var))
         else:
             logger.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-
-'''
-# Create handlers
-c_handler = logging.StreamHandler()
-c_handler.setLevel(logging.DEBUG)
-
-# Create the formatter
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-c_handler.setFormatter(c_format)
-
-# Add handlers to the logger
-logger.addHandler(c_handler)
-'''
-
 # make sure all of the necessary env variables are defined
+logger.debug("Validating settings.")
 validate_settings()
 
 # initialize the config parser
+logger.debug("Initializing the config parser.")
 config = configparser.ConfigParser()
 
 # make sure the settings file actually exists
@@ -169,6 +156,7 @@ Once the message is received, we need to:
 3. publish to blynk
 4. (optionally) do what else needs to be done
 '''
+logger.debug("Starting the processor main loop.")
 while(True):
     bytesAddressPair = udp_server_socket.recvfrom(1024)
 
