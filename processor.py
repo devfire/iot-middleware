@@ -19,25 +19,25 @@ logger.addHandler(handler)
 CONFIG_FILE = 'settings.ini'
 
 def init_udp_server():
-    # all interefaces
+    # listen on all interefaces
     HOST = ""
 
     # port to listen on
-    PORT = 3333
+    PORT = 3333111
 
     # Datagram (udp) socket
     try:
         UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        logger.info("Socket created")
+        logger.debug("Socket created")
     except OSError as err:
-        logger.error("OS error: {0}".format(err))
+        logger.error(err)
         sys.exit()
 
     # Bind socket to host and port
     try:
         UDPServerSocket.bind((HOST, PORT))
-    except OSError as err:
-        logger.error("OS error: {0}".format(err))	
+    except OverflowError as err:
+        logger.error(err)	
         sys.exit()
 
     logger.info("UDP server is ready to go.")
@@ -115,13 +115,16 @@ def send_value_to_blynk(client_message):
         try:    
             response = requests.get(URL)
             logger.debug("Sent data successfully to " + URL)
-        except requests.exceptions.RequestException as e:
-            logger.error(e)
+        except requests.exceptions.RequestException as err:
+            logger.error(err)
     else:
         # either mac or the feedname is not found, skipping
         logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
 
-def validate_settings():
+def validate_env_variables():
+    # make sure all of the necessary env variables are defined
+    logger.debug("Validating settings.")
+    
     # both the blynk url and the auth token must be present
     for env_var in ('BLYNK_URL','BLYNK_AUTH'):
         logger.debug("Checking for " + str(env_var))
@@ -131,23 +134,17 @@ def validate_settings():
             logger.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-# make sure all of the necessary env variables are defined
-logger.debug("Validating settings.")
-validate_settings()
+def initial_setup():
+    # initialize the config parser
+    logger.debug("Initializing the config parser.")
+    config = configparser.ConfigParser()
 
-# initialize the config parser
-logger.debug("Initializing the config parser.")
-config = configparser.ConfigParser()
-
-# make sure the settings file actually exists
-try:
-    config.read_file(open(CONFIG_FILE))
-except FileNotFoundError:
-    logger.error("Missing config file, exiting.")
-    sys.exit(1)
-
-# setup the server once
-udp_server_socket = init_udp_server()
+    # make sure the settings file actually exists
+    try:
+        config.read_file(open(CONFIG_FILE))
+    except FileNotFoundError:
+        logger.error("Missing config file, exiting.")
+        sys.exit(1)
 
 '''
 Let's get the infinite loop going.
@@ -158,43 +155,48 @@ Once the message is received, we need to:
 3. publish to blynk
 4. (optionally) do what else needs to be done
 '''
-logger.debug("Starting the processor main loop.")
-while(True):
-    bytesAddressPair = udp_server_socket.recvfrom(1024)
+def infinite_loop(udp_server_socket):
+    logger.debug("Starting the processor main loop.")
+    while(True):
+        bytesAddressPair = udp_server_socket.recvfrom(1024)
 
-    # this is the actual message
-    message = bytesAddressPair[0]
+        # this is the actual message
+        message = bytesAddressPair[0]
 
-    # source IP addressed, ignored for now
-    address = bytesAddressPair[1]
+        # source IP addressed, ignored for now
+        address = bytesAddressPair[1]
 
-    logger.debug("Received " + str(message) + "from " + str(address))
+        logger.debug("Received " + str(message) + "from " + str(address))
 
-    '''
-    First, make sure the udp payload is a valid json string.
-    If it is, valid_json is set to True and message contains the JSON object.
-    We do it in one shot since we are much more likely to get valid JSON than not.
-    If not, valid_json is set to False and message is an empty string ''.
-    '''
-    valid_json_bool, current_client_message = is_valid_json(message)
+        '''
+        First, make sure the udp payload is a valid json string.
+        If it is, valid_json is set to True and message contains the JSON object.
+        We do it in one shot since we are much more likely to get valid JSON than not.
+        If not, valid_json is set to False and message is an empty string ''.
+        '''
+        valid_json_bool, current_client_message = is_valid_json(message)
 
-    # only validate the schema if the message is a valid json
-    if (valid_json_bool):
-        # OK, so it is JSON. Let's make sure it is semantically valid
-        if (validate_json_schema(current_client_message)):
-            logger.debug("Valid schema detected!")
+        # only validate the schema if the message is a valid json
+        if (valid_json_bool):
+            # OK, so it is JSON. Let's make sure it is semantically valid
+            if (validate_json_schema(current_client_message)):
+                logger.debug("Valid schema detected!")
+            else:
+                logger.error("Failed schema validation, skipping.")
+                continue # go to the beginning of the while loop
         else:
-            logger.error("Failed schema validation, skipping.")
+            logger.error("Could not serialize payload to JSON, skipping.")
             continue # go to the beginning of the while loop
-    else:
-        logger.error("Could not serialize payload to JSON, skipping.")
-        continue # go to the beginning of the while loop
-    
-    # print the received message for debugging purposes
-    logger.debug(current_client_message)
-    
-    '''
-    Publish the data to blynk.
-    NOTE: we don't know the correct pin, we'll look it up later
-    '''
-    send_value_to_blynk(current_client_message)
+        
+        # print the received message for debugging purposes
+        logger.debug(current_client_message)
+        
+        '''
+        Publish the data to blynk.
+        NOTE: we don't know the correct pin, we'll look it up later
+        '''
+        send_value_to_blynk(current_client_message)
+
+if __name__ == '__main__':
+    validate_env_variables()
+    infinite_loop(init_udp_server())
