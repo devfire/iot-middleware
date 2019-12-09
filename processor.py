@@ -23,7 +23,7 @@ def init_udp_server():
     HOST = ""
 
     # port to listen on
-    PORT = 3333111
+    PORT = 3333
 
     # Datagram (udp) socket
     try:
