@@ -134,7 +134,7 @@ def validate_env_variables():
             logger.error("Missing required environment variable: " + str(env_var))
             sys.exit(1)
 
-def initial_setup():
+def initialize_config():
     # initialize the config parser
     logger.debug("Initializing the config parser.")
     config = configparser.ConfigParser()
@@ -145,17 +145,19 @@ def initial_setup():
     except FileNotFoundError:
         logger.error("Missing config file, exiting.")
         sys.exit(1)
+    
+    return config
 
-'''
-Let's get the infinite loop going.
-Essentially, udp_server_socket.recvfrom(1024) will block, waiting for a new message.
-Once the message is received, we need to:
-1. make sure it's actually JSON
-2. make sure all the required fields are present
-3. publish to blynk
-4. (optionally) do what else needs to be done
-'''
 def infinite_loop(udp_server_socket):
+    '''
+    Let's get the infinite loop going.
+    Essentially, udp_server_socket.recvfrom(1024) will block, waiting for a new message.
+    Once the message is received, we need to:
+    1. make sure it's actually JSON (syntactic validation)
+    2. make sure all the required fields are present (semantic validation)
+    3. publish to blynk
+    4. (optionally) do what else needs to be done
+    '''
     logger.debug("Starting the processor main loop.")
     while(True):
         bytesAddressPair = udp_server_socket.recvfrom(1024)
@@ -199,4 +201,6 @@ def infinite_loop(udp_server_socket):
 
 if __name__ == '__main__':
     validate_env_variables()
-    infinite_loop(init_udp_server())
+    server_socket = init_udp_server()
+    config = initialize_config()
+    infinite_loop(server_socket)
