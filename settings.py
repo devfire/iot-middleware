@@ -3,12 +3,21 @@ import logging
 import jsonschema
 
 # set our default log level
-LOG_LEVEL = logging.INFO
+# LOG_LEVEL = logging.INFO
+
+# Create a custom logger
+handler = logging.StreamHandler()
+c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(c_format)
+logger = logging.getLogger(__name__)
+logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
+logger.addHandler(handler)
 
 # set the default config file
 CONFIG_FILE = 'settings.ini'
 
 # initialize the config parser
+logger.debug("Initializing the config parser.")
 config = configparser.ConfigParser()
 
 '''

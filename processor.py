@@ -6,14 +6,7 @@ import logging
 import requests
 import settings
 import os
-
-# Create a custom logger
-handler = logging.StreamHandler()
-c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(c_format)
-logger = logging.getLogger(__name__)
-logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
-logger.addHandler(handler)
+import validators
 
 def init_udp_server():
     # listen on all interefaces
@@ -40,7 +33,7 @@ def init_udp_server():
     logger.info("UDP server is ready to go.")
 
     return UDPServerSocket
-    
+
 def send_value_to_blynk(client_message):
     # blynk settings
     BLYNK_AUTH = os.getenv("BLYNK_AUTH")
@@ -76,20 +69,6 @@ def send_value_to_blynk(client_message):
     else:
         # either mac or the feedname is not found, skipping
         logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
-
-def initialize_config():
-    # initialize the config parser
-    logger.debug("Initializing the config parser.")
-    config = configparser.ConfigParser()
-
-    # make sure the settings file actually exists
-    try:
-        config.read_file(open(CONFIG_FILE))
-    except FileNotFoundError:
-        logger.error("Missing config file, exiting.")
-        sys.exit(1)
-    
-    return config
 
 def infinite_loop(udp_server_socket):
     '''
@@ -143,7 +122,7 @@ def infinite_loop(udp_server_socket):
         send_value_to_blynk(current_client_message)
 
 if __name__ == '__main__':
-    validate_env_variables()
+    validators.validate_env_variables()
     server_socket = init_udp_server()
 #    config = initialize_config()
     infinite_loop(server_socket)
