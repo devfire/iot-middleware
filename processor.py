@@ -120,6 +120,6 @@ def infinite_loop(udp_server_socket):
 
 if __name__ == '__main__':
     validators.validate_env_variables()
+    validators.validate_config_file()
     server_socket = init_udp_server()
-#    config = initialize_config()
     infinite_loop(server_socket)

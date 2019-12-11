@@ -18,7 +18,7 @@ def validate_config_file():
     try:
         config.read_file(open(CONFIG_FILE))
     except FileNotFoundError:
-        logger.error("Missing config file, exiting.")
+        settings.logger.error("Missing config file, exiting.")
         sys.exit(1)
 
 def validate_json_schema(payload):
