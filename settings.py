@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
 logger.addHandler(handler)
 
-# set the definfoault config file
+# set the default config file
 CONFIG_FILE = 'settings.ini'
 
 # initialize the config parser

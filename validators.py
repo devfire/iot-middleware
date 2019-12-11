@@ -16,7 +16,7 @@ def validate_env_variables():
 def validate_config_file():
     # make sure the config file actually exists
     try:
-        config.read_file(open(CONFIG_FILE))
+        settings.config.read_file(open(settings.CONFIG_FILE))
     except FileNotFoundError:
         settings.logger.error("Missing config file, exiting.")
         sys.exit(1)

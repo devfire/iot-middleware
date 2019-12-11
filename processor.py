@@ -50,7 +50,7 @@ def send_value_to_blynk(client_message):
     # check to see if there's a relevant section in settings.ini and that section has the pin
     if settings.config.has_option(mac,feed_name):
         # it does, let's grab its pin
-        pin = config[mac][feed_name]
+        pin = settings.config[mac][feed_name]
         settings.logger.debug("Found valid config for pin " + str(pin))
 
         # format the URL properly. This is a REST call to blynk.
