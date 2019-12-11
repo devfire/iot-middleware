@@ -1,8 +1,5 @@
 import socket
 import sys
-import jsonschema
-import json
-import logging
 import requests
 import settings
 import os
@@ -18,19 +15,19 @@ def init_udp_server():
     # Datagram (udp) socket
     try:
         UDPServerSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        logger.debug("Socket created")
+        settings.logger.debug("Socket created")
     except OSError as err:
-        logger.error(err)
+        settings.logger.error(err)
         sys.exit()
 
     # Bind socket to host and port
     try:
         UDPServerSocket.bind((HOST, PORT))
     except OverflowError as err:
-        logger.error(err)	
+        settings.logger.error(err)	
         sys.exit()
 
-    logger.info("UDP server is ready to go.")
+    settings.logger.info("UDP server is ready to go.")
 
     return UDPServerSocket
 
@@ -49,26 +46,26 @@ def send_value_to_blynk(client_message):
     mac   = client_message["mac"]
     feed_name = client_message["feedName"]
 
-    logger.debug("Checking the config file for the pin settings")
+    settings.logger.debug("Checking the config file for the pin settings")
     # check to see if there's a relevant section in settings.ini and that section has the pin
-    if config.has_option(mac,feed_name):
+    if settings.config.has_option(mac,feed_name):
         # it does, let's grab its pin
         pin = config[mac][feed_name]
-        logger.debug("Found valid config for pin " + str(pin))
+        settings.logger.debug("Found valid config for pin " + str(pin))
 
         # format the URL properly. This is a REST call to blynk.
         URL = BLYNK_URL + '/' + BLYNK_AUTH + '/update/V' + str(pin) + '?value=' + str(value)
-        logger.debug("Posting to " + URL)
+        settings.logger.debug("Posting to " + URL)
 
         # attempt to send data to blynk
         try:    
             response = requests.get(URL)
-            logger.debug("Sent data successfully to " + URL)
+            settings.logger.debug("Sent data successfully to " + URL)
         except requests.exceptions.RequestException as err:
-            logger.error(err)
+            settings.logger.error(err)
     else:
         # either mac or the feedname is not found, skipping
-        logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
+        settings.logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
 
 def infinite_loop(udp_server_socket):
     '''
@@ -80,7 +77,7 @@ def infinite_loop(udp_server_socket):
     3. publish to blynk
     4. (optionally) do what else needs to be done
     '''
-    logger.debug("Starting the processor main loop.")
+    settings.logger.debug("Starting the processor main loop.")
     while(True):
         bytesAddressPair = udp_server_socket.recvfrom(1024)
 
@@ -90,7 +87,7 @@ def infinite_loop(udp_server_socket):
         # source IP addressed, ignored for now
         address = bytesAddressPair[1]
 
-        logger.debug("Received " + str(message) + "from " + str(address))
+        settings.logger.debug("Received " + str(message) + "from " + str(address))
 
         '''
         First, make sure the udp payload is a valid json string.
@@ -98,22 +95,22 @@ def infinite_loop(udp_server_socket):
         We do it in one shot since we are much more likely to get valid JSON than not.
         If not, valid_json is set to False and message is an empty string ''.
         '''
-        valid_json_bool, current_client_message = is_valid_json(message)
+        valid_json_bool, current_client_message = validators.validate_json(message)
 
         # only validate the schema if the message is a valid json
         if (valid_json_bool):
             # OK, so it is JSON. Let's make sure it is semantically valid
-            if (validate_json_schema(current_client_message)):
-                logger.debug("Valid schema detected!")
+            if (validators.validate_json_schema(current_client_message)):
+                settings.logger.debug("Valid schema detected!")
             else:
-                logger.error("Failed schema validation, skipping.")
+                settings.logger.error("Failed schema validation, skipping.")
                 continue # go to the beginning of the while loop
         else:
-            logger.error("Could not serialize payload to JSON, skipping.")
+            settings.logger.error("Could not serialize payload to JSON, skipping.")
             continue # go to the beginning of the while loop
         
         # print the received message for debugging purposes
-        logger.debug(current_client_message)
+        settings.logger.debug(current_client_message)
         
         '''
         Publish the data to blynk.

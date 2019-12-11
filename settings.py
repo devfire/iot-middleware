@@ -1,6 +1,7 @@
 import configparser
 import logging
 import jsonschema
+import os
 
 # set our default log level
 # LOG_LEVEL = logging.INFO
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
 logger.addHandler(handler)
 
-# set the default config file
+# set the definfoault config file
 CONFIG_FILE = 'settings.ini'
 
 # initialize the config parser

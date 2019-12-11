@@ -1,6 +1,7 @@
 import os
 import settings
 import sys
+import json
 
 def validate_env_variables():
     # both the blynk url and the auth token must be present
@@ -22,7 +23,7 @@ def validate_config_file():
 
 def validate_json_schema(payload):
     valid_json_schema = None
-    settings.logger.info("Validating " + str(payload))
+    settings.logger.debug("Validating " + str(payload))
     try:
         settings.jsonschema.validate(payload, settings.schema)
         valid_json_schema = True
@@ -33,13 +34,15 @@ def validate_json_schema(payload):
 
 def validate_json(udp_payload):
     payload_is_json = None
-    settings.logger.info("Validating " + str(udp_payload))
+    settings.logger.debug("Validating " + str(udp_payload))
     # make sure we were actually passed a JSON object
     try:
         json_payload = json.loads(udp_payload)
+        settings.logger.debug("Valid JSON detected " + str(udp_payload))
         payload_is_json = True
     except:
         json_payload = ''
+        settings.logger.error("Invalid JSON detected " + str(udp_payload))
         payload_is_json = False
     
     # return a tuple of boolean and JSON payload
