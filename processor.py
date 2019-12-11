@@ -1,10 +1,10 @@
-import configparser
 import socket
 import sys
 import jsonschema
 import json
 import logging
 import requests
+import settings
 import os
 
 # Create a custom logger
@@ -14,9 +14,6 @@ handler.setFormatter(c_format)
 logger = logging.getLogger(__name__)
 logger.setLevel(os.environ.get("LOGLEVEL", "DEBUG"))
 logger.addHandler(handler)
-
-# set the default config file
-CONFIG_FILE = 'settings.ini'
 
 def init_udp_server():
     # listen on all interefaces
@@ -202,5 +199,5 @@ def infinite_loop(udp_server_socket):
 if __name__ == '__main__':
     validate_env_variables()
     server_socket = init_udp_server()
-    config = initialize_config()
+#    config = initialize_config()
     infinite_loop(server_socket)
