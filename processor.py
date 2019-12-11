@@ -67,7 +67,7 @@ def send_value_to_blynk(client_message):
         # either mac or the feedname is not found, skipping
         settings.logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
 
-def infinite_loop(udp_server_socket):
+def main(udp_server_socket):
     '''
     Let's get the infinite loop going.
     Essentially, udp_server_socket.recvfrom(1024) will block, waiting for a new message.
@@ -122,4 +122,4 @@ if __name__ == '__main__':
     validators.validate_env_variables()
     validators.validate_config_file()
     server_socket = init_udp_server()
-    infinite_loop(server_socket)
+    main(server_socket)
