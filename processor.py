@@ -40,48 +40,7 @@ def init_udp_server():
     logger.info("UDP server is ready to go.")
 
     return UDPServerSocket
-
-def validate_json_schema(payload):
-    '''
-    In a JSON Schema, by default properties are not required, all that our schema does 
-    is state what type they must be if the property is present. 
-    So, for validation to flag whatever additional properties are missing, 
-    we need to mark that key as a required property first, 
-    by adding a required list with names. For more info:
-    https://json-schema.org/understanding-json-schema/reference/object.html#required-properties
-
-    NOTE: the "required" property is at the end of the schema.
-    '''
-    schema = {
-        "type" : "object",
-        "properties" : {
-            "mac" : {"type" : "string"},
-            "feedName" : {"type" : "string"},
-            "value" : {"type" : "number"},
-        },
-        "required": ["mac", "feedName", "value"]
-    }
-
-    try:
-        jsonschema.validate(payload, schema)
-        return True
-    except jsonschema.exceptions.ValidationError as ve:
-        #sys.stderr.write(str(ve) + "\n")
-        logger.error(ve)
-        return False
-
-def is_valid_json(udp_payload):
-    # make sure we were actually passed a JSON object
-    try:
-        json_payload = json.loads(udp_payload)
-        payload_is_json = True
-    except:
-        json_payload = ''
-        payload_is_json = False
     
-    # return a tuple of boolean and JSON payload
-    return payload_is_json, json_payload
-
 def send_value_to_blynk(client_message):
     # blynk settings
     BLYNK_AUTH = os.getenv("BLYNK_AUTH")
@@ -117,19 +76,6 @@ def send_value_to_blynk(client_message):
     else:
         # either mac or the feedname is not found, skipping
         logger.error("Not sure what to do with " + str(feed_name) + " from " + str(mac))
-
-def validate_env_variables():
-    # make sure all of the necessary env variables are defined
-    logger.debug("Validating settings.")
-    
-    # both the blynk url and the auth token must be present
-    for env_var in ('BLYNK_URL','BLYNK_AUTH'):
-        logger.debug("Checking for " + str(env_var))
-        if env_var in os.environ:
-            logger.debug("Found " + str(env_var))
-        else:
-            logger.error("Missing required environment variable: " + str(env_var))
-            sys.exit(1)
 
 def initialize_config():
     # initialize the config parser
