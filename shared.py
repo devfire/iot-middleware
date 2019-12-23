@@ -3,9 +3,6 @@ import logging
 import jsonschema
 import os
 
-# set our default log level
-# LOG_LEVEL = logging.INFO
-
 # Create a custom logger
 handler = logging.StreamHandler()
 c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
