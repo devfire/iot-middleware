@@ -1,0 +1,34 @@
+# http://www.graphviz.org/content/cluster
+
+digraph G {
+  graph [fontname = "Handlee"];
+  node [fontname = "Handlee"];
+  edge [fontname = "Handlee"];
+
+  bgcolor=transparent;
+
+  subgraph cluster_0 {
+    color=lightgrey;
+    node [shape=rectangle,style=filled,color=pink];
+    "ESP32\noutside temperature";
+    "ESP32\nsoil moisture";
+    label = "*Sensors*"
+    fontsize = 20;
+    subgraph cluster_2 {
+         color=lightgrey;
+         node [shape=rectangle,style=filled,color=pink];
+         label = "RaspberryPi";
+         "indoor temp";
+         "water temp";
+         "air quality";
+         
+    }    
+  }
+
+    "ESP32\noutside temperature" -> "iot-middleware";
+    "ESP32\nsoil moisture" -> "iot-middleware";
+     "indoor temp" -> "iot-middleware";
+     "water temp" -> "iot-middleware"; 
+     "air quality" -> "iot-middleware";
+}
+
