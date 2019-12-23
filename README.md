@@ -14,7 +14,9 @@ For a detailed overview, please see the diagram below.
 ## Configuration
 The main configuration file is [settings.ini](settings.ini).
 
+It contains a list of MAC addresses and their [blynk.io](https://blynk.io) virtual pins.
 
+Technically, this file is needed for blynk only but if you are not using blynk, then this doesn't do a whole lot more at the moment. :)
 
 ### Logging
 The software uses the standard pythong logging framework. 
