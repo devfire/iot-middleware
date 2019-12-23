@@ -10,3 +10,14 @@ At the moment, the only way to get data into the router is via UDP unicast.
 For a detailed overview, please see the diagram below.
 
 ## Architecture
+
+## Configuration
+### Logging
+The software uses the standard pythong logging framework. 
+
+Default is DEBUG, to override set the environment variable like this:
+```bash
+export LOGLEVEL=INFO
+```
+
+### Running
