@@ -10,6 +10,7 @@ At the moment, the only way to get data into the router is via UDP unicast.
 For a detailed overview, please see the diagram below.
 
 ## Architecture
+![](architecture.png)
 
 ## Configuration
 The main configuration file is [settings.ini](settings.ini).
