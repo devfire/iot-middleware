@@ -5,4 +5,4 @@ COPY . /
 RUN pip install pipenv && \
     pipenv install --deploy --system --ignore-pipfile
 
-ENTRYPOINT [ "python3", "./processor.py" ]
+CMD [ "python3", "processor.py" ]
