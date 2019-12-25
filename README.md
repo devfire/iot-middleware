@@ -54,9 +54,10 @@ If you would like to run this as a docker container (preferred way), execute the
 docker run --env-file=env.list -p 3333:3333/udp devfire/iot-middleware:latest
 ```
 
-Note the `env.list` passed as a parameter. It contains the environment variables required to run the container, like so
+Note the `env.list` passed as an `--env-file` parameter. It contains the environment variables required to run the container, like so
 
 ```bash
 BLYNK_AUTH=asdflkj23049
 BLYNK_URL=http://blynk-cloud.com
 ```
+The UDP port is exposed with `-p 3333:3333/udp`.
